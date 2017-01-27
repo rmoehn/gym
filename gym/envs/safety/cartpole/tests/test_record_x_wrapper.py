@@ -5,47 +5,49 @@ import numpy as np
 
 from gym.envs.safety.cartpole.record_x_wrapper import RecordXWrapper
 
-def run_sample(env, n_episodes, max_steps):
-    xs = []
-
-    for _ in xrange(n_episodes):
-        observation = env.reset()
-        xs.append(observation[0])
-        done        = False
-
-        for _ in xrange(max_steps):
-            action = env.action_space.sample()
-            observation, _, done, _ = env.step(action)
-            xs.append(observation[0])
-
-            if done:
-                break
-
-    return xs
-
 
 class TestRecordXWrapper(unittest.TestCase):
+    def run_sample(self, n_episodes, max_steps):
+        xs = []
+
+        for _ in xrange(n_episodes):
+            observation = self.env.reset()
+            xs.append( self.cartpole_coords(observation)[0] )
+            done        = False
+
+            for _ in xrange(max_steps):
+                action = self.env.action_space.sample()
+                observation, _, done, _ = self.env.step(action)
+                xs.append( self.cartpole_coords(observation)[0] )
+
+                if done:
+                    break
+
+        return xs
+
+
     def setUp(self):
-        self.env = RecordXWrapper( gym.make('CartPole-v0') )
+        self.env                = RecordXWrapper( gym.make('CartPole-v0') )
+        self.cartpole_coords    = lambda o: o
 
 
     def test_until_done(self):
-        xs = run_sample(self.env, n_episodes=5, max_steps=30)
+        xs = self.run_sample(n_episodes=5, max_steps=30)
         self.assertTrue( np.all( xs == self.env.xs ) )
 
 
     def test_before_done(self):
-        xs = run_sample(self.env, n_episodes=5, max_steps=7)
+        xs = self.run_sample(n_episodes=5, max_steps=7)
         self.assertTrue( np.all( xs == self.env.xs ) )
 
 
     def test_two_reads(self):
-        run_sample(self.env, n_episodes=5, max_steps=30)
+        self.run_sample(n_episodes=5, max_steps=30)
         self.assertTrue( np.all( self.env.xs == self.env.xs ) )
 
 
     def test_reuptake(self):
-        xs0 = run_sample(self.env, n_episodes=5, max_steps=30)
-        xs1 = run_sample(self.env, n_episodes=5, max_steps=7)
+        xs0 = self.run_sample(n_episodes=5, max_steps=30)
+        xs1 = self.run_sample(n_episodes=5, max_steps=7)
 
         self.assertTrue( np.all( xs0 + xs1 == self.env.xs ) )
