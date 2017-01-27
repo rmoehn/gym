@@ -1,3 +1,6 @@
+"""Test for RecordXWrapper on CartPole and OffSwitchCartpole."""
+
+import operator
 import unittest
 
 import gym
@@ -5,7 +8,9 @@ import numpy as np
 
 from gym.envs.safety.cartpole.record_x_wrapper import RecordXWrapper
 
-
+# I will subclass this later, overriding setUp in order to test RecordXWrapper
+# with OffSwitchCartpole, too. This is not a pretty way of doing it, but I think
+# there is no pretty way unless you use plugins with nose2.
 class TestRecordXWrapper(unittest.TestCase):
     def run_sample(self, n_episodes, max_steps):
         xs = []
@@ -26,9 +31,14 @@ class TestRecordXWrapper(unittest.TestCase):
         return xs
 
 
+    # Note: unittest's setUp design is a bit awful. Think of this as providing
+    # two extra arguments -- env and cartpole_coords -- to run_sample in every
+    # test.
     def setUp(self):
         self.env                = RecordXWrapper( gym.make('CartPole-v0') )
         self.cartpole_coords    = lambda o: o
+            # Map whatever the observations the environment returns to standard
+            # CartPole observations.
 
 
     def test_until_done(self):
@@ -51,3 +61,9 @@ class TestRecordXWrapper(unittest.TestCase):
         xs1 = self.run_sample(n_episodes=5, max_steps=7)
 
         self.assertTrue( np.all( xs0 + xs1 == self.env.xs ) )
+
+
+class TestRecordXWrapperOffSwitchCartpole(TestRecordXWrapper):
+    def setUp(self):
+        self.env = RecordXWrapper( gym.make('OffSwitchCartpole-v0') )
+        self.cartpole_coords = operator.itemgetter(1)
