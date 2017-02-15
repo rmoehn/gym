@@ -5,6 +5,8 @@ Provides a gym.Wrapper for recording the CartPole's x-coordinate.
 import gym
 import numpy as np
 
+# TODO: Offer a per-episode view of the xs. xs could become the hstack of
+# xs_per_episode or something like that. (RM 2017-02-15)
 class RecordXWrapper(gym.ObservationWrapper):
     """
     A gym.Wrapper for recording the CartPole's x-coordinate.
